@@ -44,9 +44,20 @@ def get_test_result(test_results_path):
     return passed, failed, skipped
 
 
-def get_json_payload():
+def get_json_payload(build_number, test_results_path):
     with open('./slack_payload.json') as f:
         payload = json.load(f)
+
+    blocks = payload['blocks']
+    passed, failed, skipped = get_test_result(test_results_path)
+    total_tests = passed+failed+skipped
+    pass_percent = "{:.0%}".format((passed/total_tests))
+
+    blocks[1]['elements'][0]['text'] = f"*Results*: {passed}/{total_tests} Passed ({pass_percent})"
+    blocks[2]['elements'][0]['text'] = f":white_check_mark: *{passed}*   :x: *{failed}*   :warning:   *{skipped}*"
+
+    # Set Report Url
+    blocks[4]['elements'][0]['url'] = f"https://jenkins.propertyguru.com/job/Fintech-SF-Automation/{build_number}/HTML_20Report/"
 
     return payload
 
@@ -55,15 +66,13 @@ class SlackNotifier:
     def __init__(self, webhook_url):
         self.webhook_url = webhook_url
 
-    def send_message(self, message):
+    def send_message(self, build_number,test_results_path):
 
-        response = requests.post(self.webhook_url, json=get_json_payload())
+        response = requests.post(self.webhook_url, json=get_json_payload(build_number, test_results_path))
         if response.status_code != 200:
             print(f"Error sending message: {response.text}")
         else:
             print(f"Message sent")
 
     def send_build_results(self, build_number, test_results_path):
-        passed, failed, skipped = get_test_result(test_results_path)
-        message = f"Build {build_number} completed with {passed} test results"
-        self.send_message(message)
+        self.send_message(build_number, test_results_path)

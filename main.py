@@ -1,7 +1,11 @@
+# main.py
+
+import os
 from slack_notifier import SlackNotifier
 
-WEB_HOOK_URL = "YOUR_SLACK_WEBHOOK";
-BUILD_NUMBER = "123"
-RESULTS_JSON_PATH = "./results/results.json"
-notifier = SlackNotifier(WEB_HOOK_URL)
+SLACK_WEB_HOOK_URL = os.environ["SLACK_WEB_HOOK_URL"]
+BUILD_NUMBER = os.environ["BUILD_NUMBER"]
+RESULTS_JSON_PATH = os.environ["RESULTS_JSON_PATH"]
+
+notifier = SlackNotifier(SLACK_WEB_HOOK_URL)
 notifier.send_build_results(BUILD_NUMBER, RESULTS_JSON_PATH)
